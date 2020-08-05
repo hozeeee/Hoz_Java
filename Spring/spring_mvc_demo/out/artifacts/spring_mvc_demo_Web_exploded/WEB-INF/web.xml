@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+
+  <!-- servlet 配置 -->
+  <servlet>
+    <!-- servlet 的名字 -->
+    <servlet-name>springmvc</servlet-name>
+    <!-- DispatcherServlet 是 Spring MVC 最核心的对象 -->
+    <!-- 它用于拦截 http 请求，并根据请求 URL ，调用与之对应的 Controller 方法来完成请求的处理 -->
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <!-- 让 DispatcherServlet 知道 applicationContext.xml 的存在 -->
+      <param-name>contextConfigLocation</param-name>
+      <param-value>classpath:applicationContext.xml</param-value>
+    </init-param>
+    <!-- "0"表示服务启动时就自动创建 Spring IOC 容器，并初始化 DispatcherServlet -->
+    <!-- 如果省略，就会在第一次请求的时候才会实现创建 Spring IOC 和初始化 DispatcherServlet 。为了提高程序相应速度，建议配置。 -->
+    <load-on-startup>0</load-on-startup>
+  </servlet>
+
+  <!-- servlet 映射 -->
+  <servlet-mapping>
+    <!-- servlet-name 的值对应上面的配置 -->
+    <servlet-name>springmvc</servlet-name>
+    <!-- 拦截的模式 （"/"表示拦截所有请求） -->
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+
+
+  <!-- 定义"字符集"过滤器 -->
+  <filter>
+    <filter-name>characterFilter</filter-name>
+    <!-- 指定过滤器使用的类 -->
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <!-- 参数 -->
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+  </filter>
+  <!-- 设置过滤器映射 -->
+  <filter-mapping>
+    <filter-name>characterFilter</filter-name>
+    <url-pattern>/**</url-pattern>
+  </filter-mapping>
+
+
+  <!-- 针对非简单请求，分析其 FORM 表单参数 -->
+  <filter>
+    <filter-name>formContentFilter</filter-name>
+    <filter-class>org.springframework.web.filter.FormContentFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>formContentFilter</filter-name>
+    <url-pattern>/**</url-pattern>
+  </filter-mapping>
+
+</web-app>

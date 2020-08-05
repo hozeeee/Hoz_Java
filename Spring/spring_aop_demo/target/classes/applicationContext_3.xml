@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- 配置目标类 -->
+  <bean id="target_obj" class="demo_3.UserService"/>
+
+  <!-- 配置前置类 -->
+  <bean id="my_before_advice" class="demo_3.MyBeforeAdvice"/>
+
+  <!-- Spring 的 AOP 产生代理对象 -->
+  <bean id="user_service_proxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+    <!-- 被代理的目标类 -->
+    <property name="target" ref="target_obj"/>
+
+    <!-- 实现的接口 -->
+    <property name="proxyInterfaces" value="demo_3.IUserService"/>
+    <!-- 若代理的对象没有实现接口,则配置 proxyTargetClass 属性为 true -->
+
+    <!-- 拦截器的名称 -->
+    <property name="interceptorNames" value="my_before_advice"/>
+
+    <!-- 是否返回单例  (默认 true ) -->
+    <property name="singleton" value="true"/>
+
+    <!-- 是否强制使用 CGLib  (默认 false ) -->
+    <property name="optimize" value="false"/>
+  </bean>
+
+</beans>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- 配置目标类 -->
+  <bean id="car_service" class="demo_5.CarService"/>
+  <bean id="user_service" class="demo_5.UserService"/>
+
+  <!-- 配置增强实现类 -->
+  <bean id="my_after_advice" class="demo_5.MyAfterAdvice"/>
+  <bean id="my_before_advice" class="demo_5.MyBeforeAdvice"/>
+
+  <!-- 配置基于 beanName 的自动代理 （不需要id是因为别的地方不需要引用它） -->
+  <bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+    <!-- 配置 beanName 的匹配规则 -->
+    <property name="beanNames" value="*_service"/>
+    <!-- 配置增强类的名字（多个用逗号分隔） -->
+    <property name="interceptorNames" value="my_after_advice, my_before_advice"/>
+  </bean>
+
+</beans>

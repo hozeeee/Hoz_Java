@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?> <!-- 同样的，第一行是 XML 描述信息 -->
+
+<!-- 文档描述，注意，这部分与 mybatis-config,xml 不同 -->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 主体部分 -->
+<!-- namespace 是命名空间，作用是区分同名的查询名称 -->
+<mapper namespace="goodsDetail">
+
+  <select id="selectByGoodsId" parameterType="Integer" resultType="my.demo.entity.GoodsDetail">
+    SELECT * FROM t_goods_detail WHERE goods_id = #{value};
+  </select>
+
+</mapper>

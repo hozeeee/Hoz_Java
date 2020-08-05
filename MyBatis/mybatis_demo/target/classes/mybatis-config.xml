@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?> <!-- 说明 XML 的版本和编码格式 -->
+
+<!-- 描述文档类型 （从官网拷贝即可） -->
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<!-- 配置内容 -->
+<configuration>
+  <!-- 开启"下划线分割"转"驼峰式命名" -->
+  <settings>
+    <setting name="mapUnderscoreToCamelCase" value="true"/>
+  </settings>
+
+  <plugins>
+    <!-- 使用 PageHelper 插件 -->
+    <plugin interceptor="com.github.pagehelper.PageInterceptor">
+      <!-- 会根据选择的数据库，自动生成相应的分页命令 -->
+      <property name="helperDialect" value="mysql"/>
+      <!-- 开启"分页合理化"参数。即页数小于0或大于最大页数，自动给出合理值。如果是默认的false，会直接根据参数查询 -->
+      <property name="reasonable" value="true"/>
+      <!-- 除了上面的配置项，更多配置请查阅官方文档 -->
+    </plugin>
+  </plugins>
+
+  <!-- 针对不同的环境使用不同的配置，以 id 区分。下面是默认使用 dev 的环境配置 -->
+  <environments default="dev">
+    <environment id="dev">
+      <!-- 采用 JDBC 方式对数据库事务进行 commit/rollback -->
+      <transactionManager type="JDBC"/>
+      <!-- POOLED 采用连接池方式管理数据库连接 -->
+      <!--      <dataSource type="POOLED">-->
+      <!--        &lt;!&ndash; 指定驱动包 &ndash;&gt;-->
+      <!--        <property name="driver" value="com.mysql.cj.jdbc.Driver"/>-->
+      <!--        &lt;!&ndash; 数据库地址（babytun是数据库名） （"&"符号需要换成"&amp;",因为"&"在XML中是有意义的） &ndash;&gt;-->
+      <!--        <property name="url"-->
+      <!--                  value="jdbc:mysql:///babytun?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC"/>-->
+      <!--        &lt;!&ndash; 登陆的用户名和密码 &ndash;&gt;-->
+      <!--        <property name="username" value="root"/>-->
+      <!--        <property name="password" value="root"/>-->
+      <!--      </dataSource>-->
+
+      <!-- 使用 C3P0 -->
+      <dataSource type="my.demo.datasource.C3P0DatasourceFactory">
+        <!-- 注意字段名 driverClass jdbcUrl user -->
+        <property name="driverClass" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="jdbcUrl"
+                  value="jdbc:mysql:///babytun?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC"/>
+        <property name="user" value="root"/>
+        <property name="password" value="root"/>
+        <property name="initialPoolSize" value="5"/><!-- 初始化连接池管理数量(与最少连接池管理数量相等即可) -->
+        <property name="minPoolSize" value="5"/><!-- 最少连接池管理数量 -->
+        <property name="maxPoolSize" value="20"/><!-- 最大连接池管理数量 -->
+        <!-- ...... -->
+      </dataSource>
+
+    </environment>
+    <!-- 针对生产的配置 -->
+    <!-- <environment id="prod">......</environment> -->
+  </environments>
+
+
+  <!-- 指定与实体类对应的 XML 文件 -->
+  <mappers>
+    <mapper resource="mappers/goods.xml"/>
+    <mapper resource="mappers/category.xml"/>
+    <mapper resource="mappers/goodsDetail.xml"/>
+  </mappers>
+</configuration>
+

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- 普通的属性注入 -->
+  <bean id="inject_property" class="demo_6.ExampleObj1">
+    <property name="name" value="zhangsan"/>
+  </bean>
+
+  <!-- 若注入的属性的类型是某个类 -->
+  <bean id="inject_property_2" class="demo_6.ExampleObj2">
+    <property name="myExampleObjSub" ref="zoo_bean"/>
+  </bean>
+  <!-- 需要额外创建 bean -->
+  <bean id="zoo_bean" class="demo_6.ExampleObjSub"/>
+
+  <!-- 对于需要参数的构造函数 -->
+  <bean id="inject_constructor_arg" class="demo_6.ExampleObj3">
+    <constructor-arg name="age" value="18" type="int"/>
+  </bean>
+
+  <!-- p 命名空间的属性注入 (只是一种简写的方式) -->
+  <!-- 注意在外层的 beans 标签的属性中，加上 xmlns:p="http://www.springframework.org/schema/p" -->
+  <bean id="inject_property_p_namespace" class="demo_6.ExampleObj1" p:name="zhangsan"/>
+  <bean id="inject_property_2_p_namespace" class="demo_6.ExampleObj2" p:myExampleObjSub-ref="zoo_bean"/>
+
+  <!-- 使用 SpEL(Spring Expression Language, Spring表达式语言) 的方式注入属性 -->
+  <!-- 使用 SpEL 可以对依赖注入进行简化。语法： #{表达式} -->
+  <bean id="inject_property_spel" class="demo_6.ExampleObj4">
+    <property name="name" value="#{'张三'}"/>
+    <property name="age" value="#{12}"/>
+    <!-- 可以调用其他实例对象的方法 -->
+    <property name="random" value="#{zoo_bean.random}"/>
+  </bean>
+
+  <!-- 复杂类型数据的注入 -->
+  <bean id="inject_property_other" class="demo_6.ExampleObj5">
+    <!-- 数组 -->
+    <property name="arrs">
+      <array>
+        <value>lisi</value>
+        <value>zhaowu</value>
+      </array>
+    </property>
+    <!-- 列表 -->
+    <property name="list">
+      <list>
+        <value>A</value>
+        <value>B</value>
+        <value>C</value>
+      </list>
+    </property>
+    <!-- Set 集合 -->
+    <property name="set">
+      <set>
+        <value>11</value>
+        <value>22</value>
+        <value>11</value>
+      </set>
+    </property>
+    <!-- Map 集合 -->
+    <property name="map">
+      <map>
+        <entry key="name" value="zhangsan"/>
+        <entry key="age" value="12"/>
+        <entry key="height" value="175"/>
+      </map>
+    </property>
+    <!-- 属性 -->
+    <property name="properties">
+      <props>
+        <prop key="username">root</prop>
+        <prop key="password">1234</prop>
+      </props>
+    </property>
+    <!--  -->
+  </bean>
+
+</beans>

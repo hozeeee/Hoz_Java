@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="UTF-8">
+  <title>Test</title>
+  <style>
+    p {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+<h1>Hello World.</h1>
+<hr>
+<label>
+  <span>method: </span>
+  <select id="my_input_method" value="get">
+    <option value="get">get</option>
+    <option value="post">post</option>
+  </select>
+</label>
+<br/>
+<label>
+  <span>url: </span><input type="text" id="my_input_url" value="/test1/get">
+</label>
+<br/>
+<span>请求的 JSON :</span>
+<br/>
+<textarea style="width:300px;height:200px;" id="my_input_json"></textarea>
+<br/>
+<span>Content-Type: </span>
+<select id="my_input_content_type" value="application/json">
+  <option value="application/json">application/json</option>
+  <option value="multipart/form-data">multipart/form-data</option>
+  <option value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</option>
+</select>
+<br/>
+<lable>
+  <span>发送请求: </span>
+  <button onclick="handleCommit()">确定</button>
+</lable>
+</body>
+
+<script>
+    let methodValue = "get";
+    let urlValue = "/test1/get";
+    let jsonValue = "";
+    let contentTypeValue = "application/json";
+
+    let domList = [
+        document.getElementById("my_input_method"),
+        document.getElementById("my_input_url"),
+        jsonEl = document.getElementById("my_input_json"),
+        contentTypeEl = document.getElementById("my_input_content_type")
+    ];
+    for (let el of domList) el.addEventListener("input", handleInputUrl);
+
+    function handleInputUrl(e) {
+        if (e.target.id === "my_input_url") urlValue = e.target.value;
+        if (e.target.id === "my_input_method") methodValue = e.target.value;
+        if (e.target.id === "my_input_json") jsonValue = e.target.value;
+        if (e.target.id === "my_input_content_type") contentTypeValue = e.target.value;
+        console.log(urlValue, methodValue, jsonValue, contentTypeValue)
+    }
+
+    function handleCommit() {
+        let data = undefined;
+        if (jsonValue) {
+            try {
+                data = JSON.parse(jsonValue)
+            } catch (e) {
+                alert("请输入合法的 JSON 字符串！")
+            }
+            if (!data) return;
+        }
+        console.log(data)
+        myAjax(methodValue, urlValue, data).then(function (res) {
+                alert(res)
+                console.log(res)
+            }
+        ).catch(function (err) {
+                alert(err)
+            }
+        )
+    }
+</script>
+<script>
+    function myAjax(method = "get", url = "/", data = undefined) {
+        let form = new FormData();
+        let formString = "";
+        if (data) {
+            for (let key in data) {
+                formString += key + "=" + data[key] + "&";
+                form.append(key, data[key])
+            }
+            formString = formString.substring(0, formString.length - 1)
+        }
+        return new Promise(function (resolve, reject) {
+            let xhr = new XMLHttpRequest()
+            console.log(111, contentTypeValue)
+            if (method.toUpperCase() === "GET") url += "?" + formString;
+            xhr.open(method, url)
+            xhr.setRequestHeader('Content-Type', contentTypeValue)
+            xhr.addEventListener('readystatechange', function (e) {
+                let _target = e.target
+                if (_target.readyState === XMLHttpRequest.DONE) {
+                    if (_target.status === 200) resolve(_target.response);
+                    else reject(_target.response);
+                }
+            })
+            if (method.toUpperCase() === "GET") xhr.send();
+            else {
+                console.log(data, formString, form)
+                if (contentTypeValue === "application/json") xhr.send(JSON.stringify(data));
+                if (contentTypeValue === "application/x-www-form-urlencoded") xhr.send(formString);
+                if (contentTypeValue === "multipart/form-data") xhr.send(form);
+            }
+        })
+    }
+</script>
+</html>

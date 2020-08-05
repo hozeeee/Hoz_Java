@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 注意加入了 mvc 的命名空间 -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+         http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+">
+
+  <!-- 开启注解扫描 （指定被扫描的包） -->
+  <context:component-scan base-package="demo"/>
+
+  <!-- 启用 Spring MVC 的注解开发模式 -->
+  <mvc:annotation-driven conversion-service="conversionService">
+    <!-- 创建消息转换器 -->
+    <mvc:message-converters>
+      <!-- 指定转换器使用的类 -->
+      <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+        <!-- 设置支持的媒体类型 -->
+        <property name="supportedMediaTypes">
+          <list>
+            <value>text/html;charset=utf-8</value>
+            <value>application/json;charset=utf-8</value>
+          </list>
+        </property>
+      </bean>
+    </mvc:message-converters>
+  </mvc:annotation-driven>
+
+  <!-- 将 图片/JS/CSS等 静态资源排除在(DispatcherServlet的处理)外，以提高执行效率 -->
+  <mvc:default-servlet-handler/>
+
+  <!-- 指定日期格式化工厂类 -->
+  <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+    <property name="converters">
+      <set>
+        <bean class="demo.converter.MyDateConverter"/>
+      </set>
+    </property>
+  </bean>
+
+  <!-- 配置全局 CORS -->
+  <mvc:cors>
+    <mvc:mapping path="/test2/cors2" allowed-origins="*" max-age="3600"/>
+  </mvc:cors>
+
+  <!-- 配置拦截器 -->
+  <mvc:interceptors>
+    <mvc:interceptor>
+      <!-- 指定可以被拦截的路径 -->
+      <mvc:mapping path="/test2/interceptor"/>
+      <!-- 指定忽略的路径 -->
+      <mvc:exclude-mapping path="**.ico"/>
+      <mvc:exclude-mapping path="/resources/**"/>
+      <!-- 指定我们创建的拦截器类 -->
+      <bean class="demo.interceptor.MyInterceptor"/>
+    </mvc:interceptor>
+
+    <!-- 日志拦截器 -->
+    <mvc:interceptor>
+      <mvc:mapping path="/**"/>
+      <mvc:exclude-mapping path="/resources/**"/>
+      <bean class="demo.interceptor.AccessHistoryInterceptor"/>
+    </mvc:interceptor>
+  </mvc:interceptors>
+
+</beans>

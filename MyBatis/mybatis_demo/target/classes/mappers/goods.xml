@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?> <!-- 同样的，第一行是 XML 描述信息 -->
+
+<!-- 文档描述，注意，这部分与 mybatis-config,xml 不同 -->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 主体部分 -->
+<!-- namespace 是命名空间，作用是区分同名的查询名称 -->
+<mapper namespace="goods">
+
+  <!-- 二级缓存配置
+    eviction 缓存清除策略，当缓存对象数量达到上限后，自动触发对应算法对缓存对象清除。可选参数：
+      1. LRU:  (推荐)最近最少使用的。就是从所有的缓存对象值，找出使用最少的清除掉。
+      2. FIFO: 先进先出。移除最早插入的缓存对象。
+      3. SOFT: 软引用。移除基于(JVM)垃圾回收器状态和软引用规则的对象。
+      4. WEAK: 弱引用。更积极地移除基于(JVM)垃圾回收器状态和弱引用规则的对象。
+    flushInterval 缓存刷新的时间。单位毫秒。清除是针对所有缓存的。
+    size 缓存对象的个数。
+    readOnly 是否只读。两个布尔值的含义：
+      1. true:  代表返回只读缓存，每次从缓存中取出的是缓存对象本身。特点，执行效率高。
+      2. false: 代表每次取出的是缓存对象的"副本"，每一次取出的对象在内存中的指向是不同的。特点，安全性高。
+   -->
+  <cache eviction="LRU" flushInterval="600000" size="512" readOnly="true"/>
+  <!-- 查询标签中跟二级缓存相关的属性
+    useCache 默认是true。表示该查询结果会被放入缓存。
+    flushCache 默认是false。表示执行该SQL后马上清空缓存。注意，对于当前的查询结果，同样不会被缓存。
+   -->
+  <select id="useSecLevCache" useCache="false" flushCache="true">#......</select>
+
+
+  <!-- id 等同于这段 SQL 查询的名称，用于说明功能。 resultType 则指定存放数据的实体类 -->
+  <!-- 内部书写标准 SQL 语句即可 -->
+  <select id="selectAll" resultType="my.demo.entity.Goods">
+    SELECT * FROM t_goods ORDER BY goods_id
+  </select>
+
+  <!-- 带一个参数的， parameterType 指定该参数的类型 -->
+  <select id="selectById" resultType="my.demo.entity.Goods" parameterType="Integer">
+    SELECT * FROM t_goods WHERE
+    # 查询特定 id 的数据
+    goods_id = #{value};
+  </select>
+
+  <!-- 带多个参数， parameterType 为 Map 对象 -->
+  <select id="selectByPriceRange" resultType="my.demo.entity.Goods" parameterType="java.util.Map">
+    SELECT * FROM t_goods WHERE
+    # 查询特定价格范围的数据
+    current_price BETWEEN #{min} AND #{max}
+    # 截取数据的前若干条
+    LIMIT 0, #{limit};
+  </select>
+
+  <!-- 当字段名不确定，不能创建对应的实体类时，可以使用 Map 对象。它可以存放所有查询到的键值对 -->
+  <!-- 需要注意的是， Map 是"无序"的，如果想按照表格的字段顺序获取结果，应该把 Map 改成 LinkedHashMap 类型 -->
+  <!-- 优点：易于扩展，易于使用 -->
+  <!-- 缺点：太过灵活，无法进行编译时检查 -->
+  <select id="selectGoodsMap" resultType="java.util.Map">
+    SELECT * FROM t_goods AS g, t_category AS c
+    WHERE g.category_id = c.category_id
+    LIMIT 0, 20;
+  </select>
+
+
+  <!-- 使用 resultMap -->
+  <!-- 创建 resultMap 。其中， id 是该 resultMap 的名字， type 指定映射的 DTO 类 -->
+  <resultMap id="resMapGoods" type="my.demo.dto.GoodsDto">
+    <!-- 下面标签的属性中， property 是 DTO 类中的属性名， column 是数据表中的字段名 -->
+    <!-- id 标签为 主键 -->
+    <id property="goods.goodsId" column="goods_id"/>
+    <!-- result 标签为 其他字段 -->
+    <result property="goods.title" column="title"/>
+    <result property="goods.discount" column="discount"/>
+    <result property="isFreedDelivery" column="is_free_delivery"/>
+    <result property="categoryName" column="category_name"/>
+  </resultMap>
+  <!-- 直接使用和上面一样的查询条件。 resultMap 的值为上面定义的 resultMap 的 id -->
+  <select id="selectGoodsDto" resultMap="resMapGoods">
+    SELECT * FROM t_goods AS g, t_category AS c
+    WHERE g.category_id = c.category_id
+    LIMIT 0, 20;
+  </select>
+
+  <!-- 动态 SQL -->
+  <select id="dynamicSql" parameterType="my.demo.entity.Goods">
+    SELECT * FROM t_goods
+    # where 标签的作用是, 如果里面的语句中, 使用了多余的 AND 或 OR ,会自动省略
+    <where>
+      # test 的作用是, 测试里面的条件, 符合则执行标签内的语句
+      <if test="categoryId != null">
+        AND category_id = #{categoryId}
+      </if>
+      <if test="discount != null">
+        # ">" 必须使用转义字符 "&gt;"
+        AND discount &gt; #{discount}
+      </if>
+    </where>
+  </select>
+
+
+  <!-- 说明一对多的关系 -->
+  <resultMap id="resMapGoods2" type="my.demo.entity.Goods">
+    <id column="goods_id" property="goodsId"/>
+    <!-- 重点是 select 属性，值为"命名空间.语句id" -->
+    <!-- 例子中表示，当查询 Goods 时，得到的结果中，遍历所有 goods_id ，并代入到 "goodDetail.selectByGoodsId" 命名空间，其结果赋值给 goodsDetails List对象 -->
+    <collection select="goodsDetail.selectByGoodsId" column="goods_id" property="goodsDetails"/>
+  </resultMap>
+  <select id="selectOneToMany" resultMap="resMapGoods2">
+    SELECT * FROM t_goods LIMIT 0,10;
+  </select>
+</mapper>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?> <!-- 同样的，第一行是 XML 描述信息 -->
+
+<!-- 文档描述，注意，这部分与 mybatis-config,xml 不同 -->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 主体部分 -->
+<!-- namespace 是命名空间，作用是区分同名的查询名称 -->
+<mapper namespace="category">
+  <select id="categorySearchById" parameterType="Integer" resultType="my.demo.entity.Category">
+    SELECT * FROM t_category WHERE category_id = #{value};
+  </select>
+
+  <!-- 插入数据 -->
+  <insert id="categoryInsert" parameterType="my.demo.entity.Category">
+    # 第一个字段是 categoryId ,属性为 AUTO_INCREMENT ,所以我们不传;
+    INSERT t_category
+    VALUES (null, #{categoryName}, #{parentId}, #{categoryLevel}, #{categoryOrder});
+    # resultType 表示内部查询语句结果的值类型;
+    # keyProperty 表示查询结果填入对应的实体类的哪个字段;
+    # order 表示 selectKey 标签内的语句在上面主体内容的之前/之后执行
+    <selectKey resultType="Integer" keyProperty="categoryId" order="AFTER">
+      SELECT last_insert_id(); # 查询最后一次插入后, 主键 id 的值
+    </selectKey>
+  </insert>
+
+  <!-- 更新数据 -->
+  <update id="categoryUpdate" parameterType="my.demo.entity.Category">
+    UPDATE t_category SET
+    category_name = #{categoryName},
+    parent_id = #{parentId},
+    category_level = #{categoryLevel},
+    category_order = #{categoryOrder}
+    WHERE category_id = ${categoryId};
+  </update>
+
+  <!-- 删除数据 -->
+  <delete id="categoryDelete" parameterType="Integer">
+    DELETE FROM t_category WHERE category_id = #{value};
+  </delete>
+
+
+  <!-- 批处理 -->
+  <insert id="batchInsert" parameterType="java.util.List">
+    INSERT t_category VALUES
+    <foreach collection="list" item="item" separator=",">
+      (null, #{item.categoryName}, #{item.parentId}, #{item.categoryLevel}, #{item.categoryOrder})
+    </foreach>
+  </insert>
+  <delete id="batchDelete" parameterType="java.util.List">
+    DELETE FROM t_category WHERE
+    gd_id IN
+    # 这里的 collection 是强制要求的, 必须是 list
+    # item 指定列循环中的当前项的变量名
+    # index 指定循环中的索引值的变量名
+    # separator 指定分割器, 即列表项用什么符号拼接成完整的语句
+    # open 表示生成的整条语句开始的符号
+    # close 表示生成的整条语句结束的符号
+    <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+      #{item}
+    </foreach>
+  </delete>
+</mapper>

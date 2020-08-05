@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- 目标类 -->
+  <bean id="target_obj" class="demo_4.UserService"/>
+
+  <!-- 配置通知类 -->
+  <bean id="my_interceptor" class="demo_4.MyInterceptor"/>
+
+  <!-- 一般的切面使用通知作为切面。现在需要对目标类的某个方法增强，则需要配置一个带有切入点的切面 -->
+  <bean id="my_advice" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+    <!-- 指定正则表达式 （包.方法） （注意把"."转义） （若name="patterns",可以指定多个规则,用逗号分隔） -->
+    <property name="pattern" value="demo_4\.UserService\.save.*"/>
+    <!-- 指定通知类 -->
+    <property name="advice" ref="my_interceptor"/>
+  </bean>
+
+  <!-- 配置代理对象 -->
+  <bean id="my_proxy_obj" class="org.springframework.aop.framework.ProxyFactoryBean">
+    <property name="target" ref="target_obj"/>
+    <property name="proxyTargetClass" value="true"/>
+    <property name="interceptorNames" value="my_advice"/>
+  </bean>
+
+</beans>

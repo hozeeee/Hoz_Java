@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- Bean 实例化的三种方式 -->
+  <!-- 第一种方式：无参构造 -->
+  <bean id="bean_demo_1" class="demo_2.ExampleObj1"/>
+  <!-- 第二种方式：静态工厂 （静态工厂只需要提供静态方法即可） -->
+  <bean id="bean_demo_2" class="demo_2.ExampleObj2StaticFactory" factory-method="getExampleObj2"/>
+  <!-- 第三种方式：实例工厂 （思路：先实例化工厂，然后调用工厂的方法获取目标对象） -->
+  <bean id="bean_demo_3_factory_instance" class="demo_2.ExampleObje3InstanceFactory"/>
+  <bean id="bean_demo_3" factory-bean="bean_demo_3_factory_instance" factory-method="getExampleObj3"/>
+
+</beans>

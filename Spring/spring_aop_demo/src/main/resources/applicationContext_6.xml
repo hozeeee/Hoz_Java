@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- 配置目标类 -->
+  <bean id="car_service" class="demo_6.CarService"/>
+  <bean id="user_service" class="demo_6.UserService"/>
+
+  <!-- 配置增强实现类 -->
+  <bean id="my_after_advice" class="demo_6.MyAfterAdvice"/>
+
+  <!-- 配置切面 -->
+  <bean id="my_advisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+    <!-- 配置方法的匹配规则 （包.方法） （注意把"."转义） （若name="patterns",可以指定多个规则,用逗号分隔） -->
+    <property name="pattern" value="demo_6\.CarService\.save.*"/>
+    <property name="advice" ref="my_after_advice"/>
+  </bean>
+
+  <!-- 自动根据上面的切面配置 -->
+  <!-- 配置基于切面信息的自动代理 （同样不需要id） -->
+  <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+
+</beans>

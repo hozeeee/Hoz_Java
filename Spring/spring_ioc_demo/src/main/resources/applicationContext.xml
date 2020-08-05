@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- 将 UserService 的创建权交给了 Spring -->
+  <!-- id 是标签的名字; class 指定类的全路径 -->
+  <bean id="userService" class="demo_1.UserService">
+    <property name="name" value="myName"/>
+    <!-- 若构造函数需要传参，可以通过此标签注入 -->
+    <constructor-arg name="age" value="18"/>
+  </bean>
+
+</beans>

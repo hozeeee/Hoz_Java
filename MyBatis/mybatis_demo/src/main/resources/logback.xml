@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 配置项 -->
+<configuration>
+  <!-- 输出器(也叫追加器)。说明在什么地方输出日志。 -->
+  <!-- name 指定输出器的名字； class 指定输入的目标类，ConsoleAppender是输出到控制台 -->
+  <appender name="myConsole" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- 编码 -->
+    <encoder>
+      <!-- 规定日志输入的格式 -->
+      <!-- %d{HH:mm:ss.SSS} 输出日期，并规定日期格式 -->
+      <!-- %thread 线程名 -->
+      <!-- %-5level 日志的等级，"-5" 表示保留前五个字符 -->
+      <!-- %logger{36} 产生 log 的类，最多保留 36 个字符，若超长，则会简写路径名 -->
+      <!-- %msg 日志的内容 -->
+      <!-- 输出示例： "10:23:40.825 [main] DEBUG o.a.i.t.jdbc.JdbcTransaction - PooledDataSource forcefully closed/removed all connections." -->
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg \r\n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- 日志打印的根标签
+    日志的输出级别：（优先级高到低）
+    error: 错误，系统的故障日志
+    warn: 警告，存在风险或使用不当的日志
+    info: 一般消息  （生产环境下的最低建议）
+    debug: 程序内部用于调试的信息 （开发环境下的最低建议）
+    trace: 程序运行的跟踪信息
+   -->
+  <root level="debug">
+    <!-- 表示只要符合父标签的 "level" ，都会使用 myConsole 格式输出日志 -->
+    <appender-ref ref="myConsole"/>
+  </root>
+</configuration>

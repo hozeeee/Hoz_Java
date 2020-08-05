@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="full_live_hock" class="demo_4.ExampleObj" init-method="initMethod"
+        destroy-method="destroyMethod">
+    <!-- 这里设置属性，会调用相应的生命周期函数 -->
+    <property name="myValue" value="fooooo"/>
+  </bean>
+  <!-- 注意这里，不需要指定ID，因为该类除了执行两个生命周期函数，不会被使用 -->
+  <bean class="demo_4.MyBeanPostProcessor"/>
+
+</beans>

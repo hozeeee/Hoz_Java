@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- 测试 Bean 的生命周期 -->
+  <!-- 当 Bean 被载入到容器时，调用 init-method 的方法。 -->
+  <!-- 当 Bean 从容器中被删除时，调用 destroy-method 的方法。仅在 scope="singleton" 有效。 -->
+  <bean id="bean_live_hook" class="demo_3.ExampleObj" init-method="beanInit" destroy-method="beanDestroy"/>
+
+</beans>
