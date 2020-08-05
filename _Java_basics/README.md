@@ -997,7 +997,7 @@ public static void main(String[] args) {
 
 - `Error` 是**程序无法处理**的错误，表示运行应用程序中比较严重的问题，一般是 Java 虚拟机的错误。
 - **`Exception`** 是程序本身可以处理的异常。异常处理通常针对这种类型异常的处理。
-  - Unchecked Exception **非检查异常**，是编译器不强制要求处理的异常。常见的是 `RuntimeException`。
+  - Unchecked Exception **非检查异常**，是编译器不强制要求处理的异常。常见的是 `RuntimeException` 。
   - Check Exception **检查异常**，是编译器要求必须处理的异常。如 `IOException` 、 `SQLException` 。
 
 上面说的"必须处理"指的是使用 `try...catch...finally` 或 `throws` 捕获处理错误。

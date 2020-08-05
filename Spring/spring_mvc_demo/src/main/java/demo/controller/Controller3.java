@@ -21,12 +21,19 @@ public class Controller3 {
   }
 
 
-  // 默认只能处理 application/x-www-form-urlencoded 类型的
+  // 如果使用方法中的参数，默认只能处理 application/x-www-form-urlencoded 类型的
   @PostMapping("/post")
   // 假如前端提供的参数与需要指定的字段不对应，可以手动设置映射关系。下示例是将 user_name 映射到 userName 变量中
   public String myPost(@RequestParam("user_name") String userName, String password) {
     System.out.println("userName: " + userName + "; password: " + password);
     return "post success";
+  }
+
+  // 如果是 application/json 必须使用 @RequestBody 接收
+  @PostMapping(path = "/post2")
+  public String myPost2(@RequestBody Post2RequestBody params) {
+    System.out.println("userName: " + params.getUserName() + "; password: " + params.getPassword());
+    return "post2 success";
   }
 
 
@@ -107,4 +114,25 @@ class ExampleObj {
   public Double num = 3.1415926d;
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
   public Date date = new Date();
+}
+
+class Post2RequestBody {
+  private String userName;
+  private String password;
+
+  public String getUserName() {
+    return userName;
+  }
+
+  public void setUsername(String userName) {
+    this.userName = userName;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
 }

@@ -11,6 +11,7 @@
     <title>Title</title>
 </head>
 <body>
-<h1>My name is ${u.name}.I'm ${u.age+1} year ago.</h1>
+<%-- "${}" 放入变量，其中 "u" 由 ModelAndView 提供 --%>
+<h1>My name is ${u.name}.I'm ${u.age} year ago.</h1>
 </body>
 </html>

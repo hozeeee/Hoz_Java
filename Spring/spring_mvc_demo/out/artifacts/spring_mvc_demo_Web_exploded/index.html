@@ -100,7 +100,7 @@
             console.log(111, contentTypeValue)
             if (method.toUpperCase() === "GET") url += "?" + formString;
             xhr.open(method, url)
-            xhr.setRequestHeader('Content-Type', contentTypeValue)
+            xhr.setRequestHeader('Content-Type', `${contentTypeValue};charset=utf-8`)
             xhr.addEventListener('readystatechange', function (e) {
                 let _target = e.target
                 if (_target.readyState === XMLHttpRequest.DONE) {

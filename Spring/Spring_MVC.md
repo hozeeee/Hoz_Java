@@ -219,12 +219,19 @@ public class Controller3 {
     System.out.println("userName: " + userName + "; password: " + password);
     return "post success";
   }
+  // 如果是 application/json 必须使用 @RequestBody 接收
+  @PostMapping(path = "/post2")
+  public String myPost2(@RequestBody Post2RequestBody params) {
+    System.out.println("userName: " + params.getUserName() + "; password: " + params.getPassword());
+    return "post2 success";
+  }
 }
 ```
 
 注意：
 
-- `@PostMapping` 默认只能获取 `application/x-www-form-urlencoded` 类型的参数。
+- `@PostMapping` 在方法参数(`@RequestParam`)中，只能获取 `application/x-www-form-urlencoded` 类型的参数。
+- 如果需要接收 `application/json` 类型的数据，必须使用 **`@RequestBody`** 指定接收参数的实体类。
 - 若前端提供的参数的字段名不合规，可以使用 `@RequestParam()` 设置参数映射。
 - 默认是不能处理请求体中的中文，需要配置。请参考[下面的内容](#使用中文出现乱码)。
 
