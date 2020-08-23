@@ -631,7 +631,7 @@ Interceptor 用于对 URL 请求进行前置/后置的拦截再处理。底层�
 
 - `preHandle1` -> `preHandle2` -> `postHandle2` -> `postHandle1` -> `afterCompletion2` -> `afterCompletion1` 。
 
-### logback 配合，记录访问日志
+### logback配合，记录访问日志
 
 1. 在 `pom.xml` 中添加 `logback` 依赖：
 

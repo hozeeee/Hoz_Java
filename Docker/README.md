@@ -108,10 +108,22 @@ docker-machine
 
 [Docker Playground](https://labs.play-with-docker.com/) 是一个网页版的 Docker ，无需安装，即可连接到远程的临时服务器。对于学习 Docker 是一个不错的选择。
 
-
-
-
 </br>
+
+## Docker架构和底层技术
+
+Docker 架构：
+
+![Docker架构](./图片/Docker架构.png)
+
+Docker 不是完全创新的技术，是依赖于 Linux 的技术，包括：
+
+- Namespaces: 用于隔离（pid、net、ipc、mnt、uts）
+- Control groups: 用于资源限制
+- Union file systems: 用于 Container 和 image 的分层
+
+
+
 
 
 
