@@ -538,14 +538,28 @@ mybatis generator 只是一个工具，用于生成 MyBatis 的代码，而且�
 
 </br>
 
-## 
+## 集成MyBatis分页插件pagehelper
 
+1. 在父项目的 `pom.xml` 的 `</dependencyManagement>` 的 `</dependencies>` 中....
 
+``` xml
+com.github.pagehelper
+pagehelper-spring-boot-starter
 
+```
 
+2. 在 service 中
 
+``` java
+public List<Dto> list(){
+  PageHelper.startPage(pageNum, pageSize)
+  // 正常调用 Example ，生成 Dto 的代码
+}
+```
 
+插件分页语句规则：调用 startPage 方法之后，执行的第一个 select 语句会进行分页。
 
+当传入的分页参数不合法时，例如 (0,0) ，程序不会报错，而是查全部记录，分页不生效。
 
 
 
