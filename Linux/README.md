@@ -1990,47 +1990,278 @@ firewallD 可能未被启用，需要使用 `systemctl start firewalld.service` 
 </br>
 </br>
 
+# FTP 服务
 
+ftp 支持所有操作系统。
 
+FTP 协议有主动模式和被动模式。主动/被动是对于服务器来说，“主动”就是服务器主动向服务端发起请求；反之则是服务端等待客户端发起请求。
 
+**安装**: `yum install vsftpd ftp`。`vsftpd` 是服务端；`ftp` 客户端。
 
+**启动**服务: `systemctl start vsftpd.service`。
 
+**连接** ftp 服务: `ftp localhost` 连接到本地的 ftp 服务，之后会提示输入账号密码。连接外部 ftp 服务同理。
 
+- 如果 `ftp 1.2.3.4` 提示 `ftp: connect: 没有到主机的路由`，其实是被防火墙拦截了。
+  - `firewall-cmd --add-service ftp --permanent` 添加服务白名单。
+- 命令成功后，会进入到 ftp 交互界面：
 
+  ``` shell
+  # 查看本地文件列表
+  ftp> !ls
+  # 上传文件
+  ftp> put foo.txt
+  # 下载文件
+  ftp> get baz.txt
+  ```
 
+配置不允许登录 ftp 的用户: `/etc/vsftp/ftpusers`。（一般是权限较高的用户，避免类似于 password 相关的高危文件被下载）
+
+用户的**黑/白名单**配置文件: `/etc/vsftp/user_list`。是黑是白，取决于主配置的 `userlist_deny`。
+
+**主配置**文件: **`/etc/vsftp/vsftpd.conf`**。常用配置介绍：
+
+- 值有两个 `YES` 和 `NO`，都需要大写。
+- `anonymous_enable=YES`: 是否支持匿名账号的功能。即不需要账号密码。
+- `local_enable=YES`: 是否支持本地用户。如果 SELinux 是启用状态，还需要检查 SE bool 的 ftp_home_dir 的布尔值。
+  - `setsebool -P ftp_home_dir 1` 设置 `ftp_home_dir` 的值为 `true`。下面有介绍 SE bool 的查询与设置。
+- `write_enables=YES`: 本地用户是否有写权限。
+- `connect_from_port_20=YES`: 是否开启 ftp 的主动模式。（用主动还是被动模式，由客户端决定）
+- `userlist_enable=YES`: 是否启用用户的黑/白名单。
+- `userlist_deny=YES`: 是否把 userlist 作为黑名单。（仅当 userlist_enable=YES 时生效）
+- 通过 `man 5 vsftpd.conf` 获取配置的帮助。
+
+查看/设置 SE bool ：
+
+- 查询 SE bool 的值，并过滤包含 ftpd 关键字的内容: `getsebool -a | grep ftpd`。
+
+  ``` txt
+  ftpd_anon_write --> off
+  ftpd_connect_all_unreserved --> off
+  ftpd_connect_db --> off
+  ftpd_full_access --> off
+  ftpd_use_cifs --> off
+  ftpd_use_fusefs --> off
+  ftpd_use_nfs --> off
+  ftpd_use_passive_mode --> off
+  ```
+
+- `ftpd_use_cifs` 开启后，既可以给 widows 文件共享，也可以给 ftp 用。
+- 示例: `setsebool -P ftpd_use_nfs 1`。
+  - 命令是把 `ftpd_use_nfs` 的值设为 `on`，`-P` 表示 permanent。
+  - 其他布尔值的设置同理。
+
+创建**虚拟用户**：
+
+1. 创建真实用户: `useradd vuser -d /data/ftp -s /sbin/nologin`。
+    - `-d /data/ftp` 设定该目录为 ftp 的根目录。
+    - `-s /sbin/nologin` 指定 shell 的根目录。
+    - 虚拟用户必须映射到一个真实用户。
+    - 多个虚拟用户可以映射到同一个真实用户。
+
+2. 创建虚拟用户:
+    - 在 `/etc/vsftpd/` 目录创建 `vuser.temp` 文件，写法类似如下：
+
+      ``` txt
+      vuser1
+      12345
+      vuser2
+      13579
+      vuser3
+      02468
+      ```
+
+    - `db_load -T -t hash -f /etc/vsftpd/vuser.temp /etc/vsftpd/vuser.db` 转化成 db 文件。
+    - `chmod 600 /etc/vsftpd/vuser.db` 修改 db 文件的权限为 600，即仅 root 用户才有权限修改此文件。
+
+3. 指定账号密码的文件：
+    - 默认使用 `/etc/pam.d/vsftpd`，默认读取系统的 password 文件，使用其中的账号密码作为 ftp 服务的账号密码。
+    - 编写 `/etc/pam.d/vsftpd.vuser` 文件，写入如下内容：
+
+      ``` txt
+      auth sufficient /lib64/secuity/pam_userdb.so db=/etc/vsftpd/vuser
+      account sufficient /lib64/secuity/pam_userdb.so db=/etc/vsftpd/vuser
+      ```
+
+4. 创建 `/etc/vsftpd/vuserconfig` 目录，用于设置虚拟用户的权限：
+    - 该目录不一定存在，没有则自己创建。
+    - 在该目录下，创建与虚拟用户同名的文件。例如，需要对 vuser1 设置权限，则创建 `vuser1` 文件。
+    - 在文件内编写类似如下内容（常用配置）：
+
+      ``` shell
+      local_root=/data/ftp        # 用户可以访问的根目录
+      write_enable=YES            # 读权限
+      anon_umask=022
+      anon_world_readable_only=NO # 只读权限
+      anon_upload_enable=YES      # 上传权限
+      anon_mkdir_write_enable=YES # 允许创建目录
+      anon_other_write_enable=YES
+      download_enable=YES         # 下载权限
+      ```
+
+5. 修改 ftp 的主配置文件（`/etc/vsftpd/vsftpd.conf`）：
+    - 修改如下配置：
+
+      ``` shell
+      # 开启如下配置
+      guest_enable=YES                        # 开启后支持虚拟用户
+      guest_username=vuser                    # 指定虚拟用户的映射到的真实用户
+      user_config_dir=/etc/vsftpd/vuserconfig # 配置各个虚拟用户的权限
+      allow_writeable_chroot=YES              # 允许虚拟用户写权限
+      pam_service_name=vsftpd.vuser           # pam 服务的配置（设置虚拟用户的账号密码）
+      # pam_service_name=vsftpd               # 需要把原来默认的配置关掉，不再支持本地用户登录 ftp 服务（pam 服务只允许一个配置）
+      ```
+
+6. 重启 ftp 服务: `systemctl restart vsftpd.service`。
 
 </br>
 </br>
 
+# samba 服务
 
+samba 用于模拟 Windows 的文件共享。
+
+**安装**: `yum install samba`。
+
+**主配置文件**: `/etc/samba/smb.conf`。具体介绍请通过 `man 5 samba` 查阅。
+
+**用户**的设置：
+
+- `smbpasswd -a user1` **添加** user1 用户到 samba 系统中。
+  - 上命令执行成功后，会提示你设置密码，该密码应用于 samba 系统。
+  - user1 必须在 Linux 系统已经创建。
+  - samba 系统是参考 Linux 中该用户的权限。
+- `smbpasswd -x user1` 从 samba 系统中**删除** user1 用户。
+- `pdbedit -L` **查看**所有 samba 用户。
+
+**启动**服务: `systemctl start smb.service`。停止则是 `stop`。
+
+Linux **客户端**: `mount -t cifs -o username=user1 //127.0.0.1/user1 /mnt`
+
+- `-t cifs` 指定文件系统的类型。此参数可以省略，由系统自动判断。
+- `-o` 表示指定源。
+- `username=user1` 设置登录用户名为 user1。
+- `//127.0.0.1/user1` 就是源的地址，其中 `user1` 与用户同名，是该用户的根目录。
+- `/mnt` 是本机被挂载的目录。
+- 命令执行后，会提示输入密码。密码正确则挂载成功。
+- 如果需要解除挂载，使用 `unmount /mnt`。
+
+Windows 客户端:
+
+- 资源管理访问共享
+- 映射网络驱动器
+
+<!-- TODO: 未实践 -->
 
 </br>
 </br>
 
+# NFS 服务
 
+nfs 服务是 Linux 自带的，不需要额外安装。通过 `systemctl start nfs.service` **启动**服务。
+
+主配置文件: `/etc/exports`。编写说明：
+
+- 一行一条规则。
+- 示例: `/data/share 10.0.0.11(ro) 10.0.0.22(rw)`。
+- `10.0.0.11` 即使可访问到共享文件夹的主机地址，如果不限制，可以指定为 `*`。
+- `(rw)` 配置功能限制。多个功能用 `,` 分隔。常用配置：
+  - `rw`: 读写。
+  - `ro`: 只读。
+  - `sync`: 读到内存中。
+  - `all_squash`: 将远程访问的所有普通用户及所属组都映射为匿名用户或用户组(nfsnobody)。
+- 注意 `10.0.0.11(ro)`，ip 与配置`()`之间不能有空格。
+- `/data/share` 是共享目录。建议将该文件夹的访问权限设置为 `nfsnobody`。
+
+**查看**可用的共享服务: `showmount -e localhost`。`localhost` 是主机地址。
+
+**客户端**挂载: `mount -t nfs localhost:/data/share /mnt`。
+
+在 Windows 的 nfs 客户端是收费软件。
 
 </br>
 </br>
 
+# Nginx
 
+Nginx(engine X) 是一个高性能的 Web 和反向代理服务器。它支持 HTTP、HTTPS 和邮件代理协议。
+
+OpenResty 是基于 Nginx 和 Lua 实现的 Web 应用网关，集成了大量的第三方模块。
+
+OpenResty 的**安装**：
+
+- `yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo` 将 repo 加载到 yum 中。其他第三方的 repo 都是用此命令加载。
+- `yum install openresty` 运行安装。
+
+OpenResty **主配置**文件: `usr/local/openresty/nginx/conf/nginx.conf`。
+
+- 配置内容简介：
+
+  ``` shell
+  # 运行时占用的进程数。如果并发量较大，需要增加数量，建议与 CPU 核心数相同。
+  worker_processes 1;
+  events {
+    # 单个 worker 支持的最大并发连接数。超过则会返回 503。如果核心主频较高，也可以把此值调高。
+    worker_connections 1024;
+  }
+  # http 服务配置。里面可以包含多个 server，即多个 http 服务。
+  http {
+    # 配置日志格式。main 是格式别名。"...." 是格式内容，具体不列举。
+    log_format main ....
+    # 设置访问日志的路径和格式配置(main)。
+    access_log logs/access.log main
+    .....
+    # 单个服务相关配置。外层配置所有服务的共同配置。
+    server {
+      ......
+    }
+  }
+  ```
+
+- Nginx 的配置文件路径则是没有 "`/openresty`"。
+
+OpenResty **启动**服务: `service openresty start`。还有 `stop`、`restart`、`reload`。
+
+在 `/usr/local/openresty/nginx` 目录下：
+
+- `/logs` 目录存放日志文件。一般是查看错误日志。
+- `/html` 目录存放 Web 静态资源。
+
+Nginx 功能非常强大，内容也很多，请自行学习。
 
 </br>
 </br>
 
+# DNS 服务
 
+DNS(Domain Name System, 域名系统) 服务的作用是将域名解析成 IP 地址。
 
-</br>
-</br>
+例如 `www.baidu.com`:
 
+- `www.baidu.com` 整个就是 FQDN(Full Qualified Domain Name, 完全限定域名)。同时带有主机名和域名的名称。
+- `www` 是主机名。
+- `baidu.com` 是域名。
+- `.com` 就是顶级域(Top-level Domain, TLD)。
+  - 其实还有更高一级，就是根域，主要用来管理互联网的主目录，最早是 IPV4，全球只有 13 台。
 
+**查询方式**有两种：
 
-</br>
-</br>
+- **递归**。即当前 DNS 服务器包含目标域名，通过查询服务器的列表返回结果。
+- **迭代**。即当前 DNS 服务器不包含目标域名，需要再请求别的 DNS 服务器。
 
+**解析方式**有两种：
 
+- 如果是**把域名解析成 IP**，就是**正向解析**。
+- 如果把 IP 解析成域名，那就是**反向解析**。
 
-</br>
-</br>
+**安装**: `yum install bind bind-utils`。
 
+**启动**: `systemctl start named.service`。
 
+**主配置**文件: `/etc/named.conf`。
 
+检查配置是否有误: `named-checkconf`。
+
+<!-- TODO: 实践做一个 DNS 服务器 -->
+
+本机可以通过修改 `/etc/host` 的配置指定某个域名与 IP 的映射关系。
